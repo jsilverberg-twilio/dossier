@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Deal Room
 
-## Getting Started
+A web app for Twilio sellers to build, share, and reuse customer-facing digital asset rooms.
 
-First, run the development server:
+Sellers assemble curated rooms from a menu-driven interface, share via unique links with co-branding, track customer engagement, and contribute winning rooms to a community library.
+
+## Features
+
+- **Room Builder** — Create rooms with sections, upload files, add links, write notes
+- **Co-Branded Customer Portal** — Shareable link with seller + customer logos, accent colors
+- **Engagement Analytics** — Track views, downloads, clicks per visitor
+- **Community Library** — Share winning rooms, browse by tags, clone as templates
+- **Extensible** — Adapter pattern for future Twilio ecosystem integrations (docs, demos, marketing collateral)
+
+## Quick Start
 
 ```bash
+npm install
+npx prisma migrate dev
+npx prisma db seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Seeded Accounts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Email | Password |
+|-------|----------|
+| alex.morgan@twilio.com | password123 |
+| sam.chen@twilio.com | password456 |
 
-## Learn More
+## Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework:** Next.js 16 (App Router)
+- **Database:** SQLite via Prisma 7
+- **Auth:** NextAuth.js v5 (credentials provider)
+- **Storage:** Local filesystem (swappable to S3/R2)
+- **Styling:** Tailwind CSS v4
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/
+  (seller)/              Authenticated seller pages
+    dashboard/           Room list and quick stats
+    rooms/[id]/          Room builder with branding editor
+    rooms/[id]/analytics Engagement analytics
+    community/           Community library
+  (customer)/
+    [slug]/              Public customer portal
+  api/                   REST API routes
+lib/
+  adapters/              Asset source adapters (extensible)
+  storage/               File storage abstraction
+  events/                Event capture and analytics
+prisma/
+  schema.prisma          Database schema
+  seed.ts                Sample data
+```
 
-## Deploy on Vercel
+## Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+NEXTAUTH_SECRET=your-secret-here
+NEXTAUTH_URL=http://localhost:3000
+DATABASE_URL=file:./dev.db
+```
