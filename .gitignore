@@ -45,3 +45,6 @@ public/uploads/*
 
 # database
 *.db
+
+# brainstorming scratchpad
+.superpowers/
