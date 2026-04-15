@@ -1,5 +1,5 @@
-import { notFound, redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { notFound } from "next/navigation";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { SectionList } from "./components/SectionList";
@@ -32,15 +32,11 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default async function RoomBuilderPage({ params }: PageProps) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
-
+  const user = await getCurrentUser();
   const { id } = await params;
 
   const room = await prisma.room.findFirst({
-    where: { id, sellerId: session.user.id },
+    where: { id, sellerId: user.id },
     include: {
       sections: {
         orderBy: { order: "asc" },

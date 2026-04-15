@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { LocalStorage } from "@/lib/storage";
 
@@ -9,15 +8,14 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string; sectionId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { sectionId } = await params;
 
   const formData = await req.formData();
   const type = formData.get("type") as string;
   const title = formData.get("title") as string;
   const description = formData.get("description") as string | null;
+  const sourceType = (formData.get("sourceType") as string) || "manual";
+  const sourceRef = formData.get("sourceRef") as string | null;
 
   const maxOrder = await prisma.asset.aggregate({ where: { sectionId }, _max: { order: true } });
   const order = (maxOrder._max.order ?? -1) + 1;
@@ -41,6 +39,8 @@ export async function POST(
     data: {
       sectionId,
       type,
+      sourceType,
+      sourceRef,
       title,
       description,
       url,

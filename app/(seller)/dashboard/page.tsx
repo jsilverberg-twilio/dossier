@@ -1,6 +1,5 @@
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 
 function StatusBadge({ status }: { status: string }) {
@@ -32,13 +31,10 @@ function formatDate(date: Date) {
 }
 
 export default async function DashboardPage() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
+  const user = await getCurrentUser();
 
   const rooms = await prisma.room.findMany({
-    where: { sellerId: session.user.id },
+    where: { sellerId: user.id },
     orderBy: { createdAt: "desc" },
     include: {
       sections: {

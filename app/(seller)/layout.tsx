@@ -1,4 +1,4 @@
-import { auth, signOut } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import Link from "next/link";
 
 export default async function SellerLayout({
@@ -6,16 +6,8 @@ export default async function SellerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-
-  // Login/register pages: render without the nav shell
-  // (middleware handles redirects, so if there's no session we're on an auth page)
-  if (!session) {
-    return <>{children}</>;
-  }
-
-  const user = session.user;
-  const initials = user?.name
+  const user = await getCurrentUser();
+  const initials = user.name
     ? user.name
         .split(" ")
         .map((p: string) => p[0])
@@ -60,20 +52,6 @@ export default async function SellerLayout({
             {user?.name}
           </span>
 
-          {/* Sign out server action */}
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/login" });
-            }}
-          >
-            <button
-              type="submit"
-              className="rounded-md px-3 py-1.5 text-sm text-gray-400 transition hover:bg-gray-800 hover:text-red-400"
-            >
-              Sign out
-            </button>
-          </form>
         </div>
       </header>
 

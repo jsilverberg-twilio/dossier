@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 
 export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { searchParams } = new URL(req.url);
   const search = searchParams.get("search") ?? "";
   const tag = searchParams.get("tag") ?? "";
@@ -56,23 +53,19 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+  const user = await getCurrentUser();
   const { roomId, title, description, tags } = await req.json();
   if (!roomId || !title || !description) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  // Verify seller owns the room
   const room = await prisma.room.findFirst({
-    where: { id: roomId, sellerId: session.user.id },
+    where: { id: roomId, sellerId: user.id },
   });
   if (!room) {
     return NextResponse.json({ error: "Room not found or access denied" }, { status: 404 });
   }
 
-  // Check if already shared
   const existing = await prisma.communityRoom.findUnique({ where: { roomId } });
   if (existing) {
     return NextResponse.json({ error: "Room already shared to community" }, { status: 409 });
@@ -81,7 +74,7 @@ export async function POST(req: Request) {
   const communityRoom = await prisma.communityRoom.create({
     data: {
       roomId,
-      sellerId: session.user.id,
+      sellerId: user.id,
       title,
       description,
       tags: JSON.stringify(Array.isArray(tags) ? tags : []),

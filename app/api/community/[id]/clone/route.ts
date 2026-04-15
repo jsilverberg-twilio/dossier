@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 import { uniqueSlug } from "@/lib/slug";
 
@@ -7,12 +7,9 @@ export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+  const user = await getCurrentUser();
   const { id } = await params;
 
-  // Find the community room and its source room with all sections/assets
   const communityRoom = await prisma.communityRoom.findUnique({
     where: { id },
     include: {
@@ -36,10 +33,9 @@ export async function POST(
   const sourceRoom = communityRoom.room;
   const slug = await uniqueSlug("New Customer");
 
-  // Create new room (strip customerName, set status: draft)
   const newRoom = await prisma.room.create({
     data: {
-      sellerId: session.user.id,
+      sellerId: user.id,
       name: sourceRoom.name,
       customerName: "New Customer",
       description: sourceRoom.description,
@@ -48,7 +44,6 @@ export async function POST(
     },
   });
 
-  // Copy sections and assets
   for (const section of sourceRoom.sections) {
     const newSection = await prisma.section.create({
       data: {
@@ -77,7 +72,6 @@ export async function POST(
     }
   }
 
-  // Increment clone count
   await prisma.communityRoom.update({
     where: { id },
     data: { cloneCount: { increment: 1 } },

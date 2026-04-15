@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getCurrentUser();
   const { id } = await params;
   const room = await prisma.room.findFirst({
-    where: { id, sellerId: session.user.id },
+    where: { id, sellerId: user.id },
     include: {
       sections: {
         orderBy: { order: "asc" },
@@ -26,12 +25,11 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getCurrentUser();
   const { id } = await params;
   const data = await req.json();
   const room = await prisma.room.updateMany({
-    where: { id, sellerId: session.user.id },
+    where: { id, sellerId: user.id },
     data,
   });
   if (!room.count) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -42,9 +40,8 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getCurrentUser();
   const { id } = await params;
-  await prisma.room.deleteMany({ where: { id, sellerId: session.user.id } });
+  await prisma.room.deleteMany({ where: { id, sellerId: user.id } });
   return NextResponse.json({ ok: true });
 }

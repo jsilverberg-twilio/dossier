@@ -1,6 +1,6 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
 import { getRoomAnalytics } from "@/lib/events";
 
@@ -113,15 +113,11 @@ function actionLabel(action: string, assetTitle: string | null): string {
 }
 
 export default async function AnalyticsPage({ params }: PageProps) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
-
+  const user = await getCurrentUser();
   const { id } = await params;
 
   const room = await prisma.room.findFirst({
-    where: { id, sellerId: session.user.id },
+    where: { id, sellerId: user.id },
     select: { id: true, name: true },
   });
 
