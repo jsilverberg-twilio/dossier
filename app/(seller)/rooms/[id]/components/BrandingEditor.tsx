@@ -60,124 +60,123 @@ export function BrandingEditor({ roomId, initialBranding }: Props) {
   };
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-      <h2 className="mb-5 text-sm font-semibold uppercase tracking-wider text-gray-500">
-        Branding
-      </h2>
-
-      <div className="space-y-6">
-        {/* Logo row */}
-        <div className="grid gap-6 sm:grid-cols-2">
-          {/* Seller logo */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              Seller / Company Logo
-            </label>
-            {branding.sellerLogoUrl && (
-              <div className="mb-2 rounded-lg border border-gray-800 bg-gray-950 p-3 flex items-center justify-center h-20">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={branding.sellerLogoUrl}
-                  alt="Seller logo"
-                  className="max-h-14 max-w-full object-contain"
-                />
-              </div>
-            )}
-            <input
-              ref={sellerFileRef}
-              type="file"
-              accept="image/*"
-              className="block w-full text-sm text-gray-400 file:mr-3 file:rounded-lg file:border file:border-gray-700 file:bg-gray-800 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-gray-300 file:transition hover:file:border-gray-600 hover:file:bg-gray-700 cursor-pointer"
-            />
-          </div>
-
-          {/* Customer logo */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              Customer Logo
-            </label>
-            {branding.customerLogoUrl && (
-              <div className="mb-2 rounded-lg border border-gray-800 bg-gray-950 p-3 flex items-center justify-center h-20">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={branding.customerLogoUrl}
-                  alt="Customer logo"
-                  className="max-h-14 max-w-full object-contain"
-                />
-              </div>
-            )}
-            <input
-              ref={customerFileRef}
-              type="file"
-              accept="image/*"
-              className="block w-full text-sm text-gray-400 file:mr-3 file:rounded-lg file:border file:border-gray-700 file:bg-gray-800 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-gray-300 file:transition hover:file:border-gray-600 hover:file:bg-gray-700 cursor-pointer"
-            />
-          </div>
-        </div>
-
-        {/* Color + company name row */}
-        <div className="grid gap-6 sm:grid-cols-2">
-          {/* Accent color */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              Accent Color
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={branding.primaryColor ?? "#3b82f6"}
-                onChange={(e) =>
-                  setBranding((prev) => ({ ...prev, primaryColor: e.target.value }))
-                }
-                className="h-9 w-14 cursor-pointer rounded-lg border border-gray-700 bg-gray-800 p-1"
-              />
-              <input
-                type="text"
-                value={branding.primaryColor ?? "#3b82f6"}
-                onChange={(e) =>
-                  setBranding((prev) => ({ ...prev, primaryColor: e.target.value }))
-                }
-                className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                placeholder="#3b82f6"
-                maxLength={9}
+    <div className="space-y-5 px-4 py-5">
+      {/* Logo row */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {/* Seller logo */}
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Seller Logo
+          </label>
+          {branding.sellerLogoUrl && (
+            <div className="mb-2 rounded-lg border border-slate-200 bg-white p-3 flex items-center justify-center h-16">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={branding.sellerLogoUrl}
+                alt="Seller logo"
+                className="max-h-10 max-w-full object-contain"
               />
             </div>
-          </div>
+          )}
+          {!branding.sellerLogoUrl && (
+            <div className="mb-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 flex items-center justify-center h-16">
+              <span className="text-xs text-amber-500 font-semibold">⚠ Missing</span>
+            </div>
+          )}
+          <input
+            ref={sellerFileRef}
+            type="file"
+            accept="image/*"
+            className="block w-full text-xs text-slate-500 file:mr-2 file:rounded-lg file:border file:border-slate-200 file:bg-white file:px-3 file:py-1 file:text-xs file:font-medium file:text-slate-600 file:shadow-sm file:transition hover:file:border-slate-300 cursor-pointer"
+          />
+        </div>
 
-          {/* Company name */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              Company Name{" "}
-              <span className="text-gray-600 font-normal">(overrides &ldquo;Twilio&rdquo;)</span>
-            </label>
+        {/* Customer logo */}
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Customer Logo
+          </label>
+          {branding.customerLogoUrl && (
+            <div className="mb-2 rounded-lg border border-slate-200 bg-white p-3 flex items-center justify-center h-16">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={branding.customerLogoUrl}
+                alt="Customer logo"
+                className="max-h-10 max-w-full object-contain"
+              />
+            </div>
+          )}
+          {!branding.customerLogoUrl && (
+            <div className="mb-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 flex items-center justify-center h-16">
+              <span className="text-xs text-amber-500 font-semibold">⚠ Missing</span>
+            </div>
+          )}
+          <input
+            ref={customerFileRef}
+            type="file"
+            accept="image/*"
+            className="block w-full text-xs text-slate-500 file:mr-2 file:rounded-lg file:border file:border-slate-200 file:bg-white file:px-3 file:py-1 file:text-xs file:font-medium file:text-slate-600 file:shadow-sm file:transition hover:file:border-slate-300 cursor-pointer"
+          />
+        </div>
+      </div>
+
+      {/* Color + company name row */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {/* Accent color */}
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Accent Color
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={branding.primaryColor ?? "#ef4444"}
+              onChange={(e) =>
+                setBranding((prev) => ({ ...prev, primaryColor: e.target.value }))
+              }
+              className="h-8 w-10 cursor-pointer rounded-lg border border-slate-200 bg-slate-50 p-0.5"
+            />
             <input
               type="text"
-              value={branding.companyName ?? ""}
+              value={branding.primaryColor ?? "#ef4444"}
               onChange={(e) =>
-                setBranding((prev) => ({ ...prev, companyName: e.target.value }))
+                setBranding((prev) => ({ ...prev, primaryColor: e.target.value }))
               }
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-              placeholder="Twilio"
+              className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700 placeholder-slate-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+              placeholder="#ef4444"
+              maxLength={9}
             />
           </div>
         </div>
 
-        {/* Save */}
-        <div className="flex items-center gap-3 pt-1">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-          >
-            {saving ? "Saving…" : "Save Branding"}
-          </button>
-          {saved && (
-            <span className="text-sm text-green-400">Saved!</span>
-          )}
-          {error && (
-            <span className="text-sm text-red-400">{error}</span>
-          )}
+        {/* Company name */}
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Company Name
+          </label>
+          <input
+            type="text"
+            value={branding.companyName ?? ""}
+            onChange={(e) =>
+              setBranding((prev) => ({ ...prev, companyName: e.target.value }))
+            }
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700 placeholder-slate-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+            placeholder="Twilio"
+          />
         </div>
+      </div>
+
+      {/* Save */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        >
+          {saving ? "Saving…" : "Save Branding"}
+        </button>
+        {saved && <span className="text-sm text-green-600">Saved!</span>}
+        {error && <span className="text-sm text-red-500">{error}</span>}
       </div>
     </div>
   );
