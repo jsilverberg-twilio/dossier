@@ -15,35 +15,44 @@ Replaces the current dark (`gray-950`) theme with the GTM Accelerator design lan
 | Page background | `slate-50` (`#f8fafc`) |
 | Card background | `white` |
 | Card border | `slate-200` (`#e2e8f0`) |
-| Card radius | `rounded-2xl` (14–16px) |
-| Card shadow | `shadow-sm` (1px 3px, 4% opacity) |
+| Card radius | `rounded-2xl` |
+| Card shadow | `shadow-sm` |
 | Card header bg | `slate-50` with `border-b slate-200` |
-| Primary accent | Twilio red `#ef4444` (`red-500`) |
+| Primary accent | `red-500` (`#ef4444`) — intentional simplification of Twilio brand red `#F22F46`; exact brand token can be swapped in a follow-up |
 | Text / primary | `slate-900` |
 | Text / secondary | `slate-700` / `slate-500` |
 | Text / muted | `slate-400` |
 | Focus ring | `ring-2 ring-red-500` |
 | Input bg | `slate-50` with `border slate-200` |
 | Button / primary | `bg-red-500 text-white hover:bg-red-600` |
-| Button / ghost | `bg-white border-slate-200 text-slate-500 shadow-sm` |
+| Button / ghost | `bg-white border border-slate-200 text-slate-500 shadow-sm` |
 
 Asset thumbnail tiles use gradient backgrounds by file type:
-- PDF → `red-500` → `red-700`
-- PPTX → `orange-500` → `orange-700`
-- Link → `blue-500` → `blue-700`
-- Note/Action → `purple-500` → `purple-700`
+- PDF → `from-red-500 to-red-700`
+- PPTX/PPT → `from-orange-500 to-orange-700`
+- Link → `from-blue-500 to-blue-700`
+- Note/Action item → `from-purple-500 to-purple-700`
 
-Status badges use light pill style: `bg-green-100 text-green-700 border-green-200` (published), `bg-yellow-100 text-yellow-700 border-yellow-200` (draft).
+Status badges use light pill style: `bg-green-100 text-green-700 border border-green-200` (published), `bg-yellow-100 text-yellow-700 border border-yellow-200` (draft).
 
 ---
 
-## 2. Global Nav
+## 2. Global Nav (seller side)
 
-Sticky top nav, `h-14`, white background with `border-b slate-200`.
+Sticky top nav, `h-14`, white background with `border-b border-slate-200`.
 
-- **Left:** Brand mark (red `rounded-lg` box with "D") + "Deal Room" wordmark + `border-r` divider + breadcrumb (Dashboard › Room Name)
-- **Right:** Live/Draft status pill + "Share to Community" ghost button + Publish/Unpublish red button + avatar circle
-- Nav links (Dashboard, Community) move into the breadcrumb area as the primary wayfinding
+**Left side:**
+- Brand mark: red `rounded-lg` box containing "D" + "Deal Room" wordmark
+- `border-r border-slate-100` divider
+- Breadcrumb: "Dashboard" (link) › "Room Name" (current page, non-link). On the dashboard, only "Dashboard" appears with no separator.
+
+**Right side (room builder only):**
+- Live/Draft status pill
+- "Share to Community" ghost button
+- Publish / Unpublish red primary button
+- Seller avatar circle (initials, red bg) — no dropdown required
+
+The Dashboard and Community links from the old nav are removed. Navigation back to Dashboard is via the breadcrumb. Community is accessible from the Dashboard page.
 
 ---
 
@@ -54,108 +63,146 @@ The room builder (`/rooms/[id]`) switches from a single-column layout to a **two
 ```
 ┌─────────────────────────────────────┬──────────────────┐
 │  Buyer View (live preview)          │  Editor Panel    │
-│  ~60% width                         │  ~40% width      │
+│  ~60% width (flex-1)               │  380px fixed     │
 └─────────────────────────────────────┴──────────────────┘
 ```
 
+Both panels sit below the sticky nav and fill `calc(100vh - 56px)` with `overflow-y-auto` independently.
+
 ### 3a. Left Panel — Buyer View
 
-A live read-only preview of the customer-facing portal, rendered inside the builder. Labeled **"Buyer View"** with an eye icon and an "Open in new tab ↗" link.
+A read-only preview of the customer-facing portal rendered inline. Labeled **"Buyer View"** (eye icon) with "Open in new tab ↗" that opens `/r/[slug]`.
 
-The preview renders inside a white `rounded-xl shadow-md` frame with:
-- Co-branded header (seller logo + divider + customer logo, or text fallbacks)
-- Room title and prep date
-- Section tab navigation (tabs update as the seller edits sections)
-- Asset cards for the active tab — gradient thumbnail, type badge, name, description, action button
-- Seller contact card at the bottom (name, title, email, "Email" + "Schedule a call" buttons)
+**Data flow:** The room builder page fetches room data server-side as before. A new `RoomContext` (new file: `app/(seller)/rooms/[id]/context.tsx`) is created as part of this work to hold room state at the page level. The current `page.tsx` is a plain async server component — it will be refactored to pass initial data into a new client wrapper that provides `RoomContext`. Mutations in the editor update `RoomContext` optimistically, so the buyer view re-renders without a network round-trip.
 
-The preview updates in real time as the seller edits content in the right panel. It is not interactive for editing — clicks on the preview do not trigger edit actions.
+The preview renders a styled frame (`rounded-xl shadow-md bg-white border border-slate-200`) containing:
+- Co-branded header: seller logo image (or red text box fallback) + `1px slate-200` divider + customer logo image (or gray text box fallback) + room title + prep date (right-aligned)
+- Horizontal section tabs — one per section in order, with emoji icon + name + asset count. First tab active by default.
+- Asset cards for the active tab (read-only, same visual design as Section 4)
+- Seller contact card at the bottom
+
+The preview is **not interactive for editing**. Clicks within the preview frame are ignored.
+
+**Seller contact data source:** Comes from the authenticated seller's profile (`getCurrentUser()`). The seller's `name` and `email` fields are used. No per-room seller fields are needed.
+
+**Empty state (no sections):** Show a centered placeholder inside the preview frame: "No sections yet — add one in the editor →" in `slate-400`.
 
 ### 3b. Right Panel — Editor (tabbed)
 
-Three tabs: **Content**, **Branding**, **Analytics**.
+Fixed `w-[380px]`, white background, `border-l border-slate-200`. Three tabs at the top:
 
-**Content tab (default):**
-- Branding summary card at top — three fields (seller logo, customer logo, accent color) in a 3-column grid. Missing fields show an amber warning state.
-- Section cards below, each as a white `rounded-xl` card with:
-  - Card header: drag handle, emoji icon, section name, asset count, edit (✎) and delete (✕) icon buttons
-  - Asset rows: gradient thumbnail tile (40×40px), asset name, metadata (size/date/domain), delete button on hover
-  - "＋ Add asset" dashed button at the bottom of each section
-- Active/focused section gets a red focus ring (`ring-2 ring-red-200 border-red-300`)
-- Sections are reorderable by drag handle
+**Tab 1 — Content (default)**
 
-**Branding tab:**
-- Full branding editor (logo uploads, color picker, company name)
+- **Branding summary card** at top: 3-column grid with seller logo, customer logo, accent color. Fields with no value set show an amber `⚠ Missing` warning state. This is **cosmetic only** — missing branding does not block publishing. Clicking any field activates the Branding tab.
+- **Section cards** below: each is a white `rounded-xl border-slate-200 shadow-sm` card with:
+  - Card header (`bg-slate-50 border-b`): drag handle `⠿`, emoji icon (editable), section name, asset count, edit `✎` and delete `✕` icon buttons
+  - Asset rows: 40×40px gradient thumbnail, asset name, metadata (file size + upload date for files; domain for links), delete button revealed on hover
+  - `＋ Add asset` dashed button at the bottom of each section's asset list
+- The section whose outline entry is active gets `border-red-300 ring-2 ring-red-100`
+- **Section reordering:** drag-and-drop via drag handle. Order is persisted immediately on drop via the existing `PATCH /api/rooms/[id]/sections` (plural) bulk-reorder endpoint, which accepts an array of `{id, order}`. Optimistic update in `RoomContext`, revert on error.
+- **Asset reordering:** same pattern. A new `PATCH` handler must be added to `app/api/rooms/[id]/sections/[sectionId]/assets/[assetId]/route.ts` (currently only implements `DELETE`). It accepts `{order: number}` and updates the asset's order field. This is new API work required by this spec.
 
-**Analytics tab:**
-- Engagement stats: 2×2 metric tiles (Total views highlighted in red, Visitors, Downloads, Link clicks)
-- "Views by section" bar chart (horizontal bars, red fill, section names + counts)
-- Recent activity feed (visitor emails, download/click events, timestamps)
-- "View full analytics →" link to `/rooms/[id]/analytics`
+**Empty state (new room, no sections):** Show a centered empty state card: "Add your first section to get started" with a `＋ Add Section` button.
+
+**Tab 2 — Branding**
+
+Full branding editor (existing `BrandingEditor` component, restyled). Fields: seller logo upload, customer logo upload, accent color picker, company name. The per-room accent color applies **only in the customer-facing portal** (`/r/[slug]`), not in the seller builder UI. The builder always uses `red-500`. The default accent color stored in new rooms must be updated from the current `#3b82f6` (blue) to `#ef4444` — this applies both in `BrandingEditor`'s initial state and in the customer portal's fallback when no branding is set.
+
+**Tab 3 — Analytics**
+
+- 2×2 metric tiles: Total views (highlighted with `bg-red-50 border-red-200`), Visitors, Downloads, Link clicks. All sourced from existing events data.
+- "Views by section" — horizontal bar chart. Each row: section name (truncated), red bar scaled to max views, count. Pure CSS, no chart library needed.
+- Recent activity feed: last 10 events, each showing avatar (initial circle), action text, timestamp. Events: `room_viewed`, `asset_viewed`, `link_clicked`.
+- "View full analytics →" links to existing `/rooms/[id]/analytics` page.
+
+**Empty state (draft / no views):** Replace metric tiles and activity feed with: "Publish your room to start tracking engagement."
 
 ---
 
 ## 4. Customer-Facing Portal (`/r/[slug]`)
 
-Replaces the current dark sidebar layout with a clean, content-first light design.
+Full rewrite of `app/(customer)/[slug]/page.tsx`. The sidebar is removed entirely, replaced by a horizontal tab bar. `tracker.tsx` (which fires `room_viewed`, `asset_viewed`, and `link_clicked` events via DOM event handlers) is not tied to the sidebar DOM structure and continues to work unchanged under the new layout.
 
 ### Header
-Sticky, white, `h-15`. Left: co-branded logos (seller logo box + `1px` divider + customer logo box, text fallbacks if no images). Right: room title + "Prepared by [seller name] · [date]".
+Sticky, white, `h-16`, `border-b border-slate-200`, `shadow-sm`.
+- Left: co-branded logos (seller logo image or red text box fallback + `1px slate-200` divider + customer logo image or gray text box fallback)
+- Right: room name (`font-bold`) + "Prepared by [seller name] · [month year]" in `slate-400`
 
 ### Section Navigation
-Horizontal tab bar directly below the header, sticky. Each tab shows: emoji icon + section name + asset count pill. Active tab: `text-red-500 border-b-2 border-red-500`. Sections render as full pages — clicking a tab replaces the content area, no scrolling between sections.
+Sticky horizontal tab bar immediately below the header (`top-16`). White bg, `border-b border-slate-200`. Each tab: emoji icon + section name + asset count pill. Active: `text-red-500 border-b-2 border-red-500`. Clicking a tab replaces the content area — **no scroll-between-sections**; each section is a discrete view. Tab state is managed in component state (no URL change required).
 
 ### Content Area
-Max-width `900px`, centered, `padding: 40px 32px`.
+`max-w-[900px] mx-auto px-8 py-10`.
 
 Each section shows:
-- Section name as `text-2xl font-extrabold`
-- Optional description in `text-slate-500`
-- Asset grid: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`, `gap-14px`
+- Section name: `text-2xl font-extrabold text-slate-900`
+- Optional description: `text-sm text-slate-500 mt-1 mb-7`
+- Asset grid: `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5`
 
-**Asset cards:**
-- `rounded-2xl`, white, `shadow-sm`, hover lifts with red border glow
-- Top strip (100px): gradient background by file type, large type label (PDF/PPT/↗)
-- Body: type badge pill, asset name (`font-bold`), description, file metadata
-- Action button at bottom: "⬇ Download" for files, "↗ Open Link" for links — full-width, red background
+**Asset cards** (`rounded-2xl bg-white border border-slate-200 shadow-sm`):
+- Hover: `hover:-translate-y-px hover:border-red-300 hover:shadow-red-100 hover:shadow-md` transition
+- Top strip `h-[100px]`: gradient bg by file type, large type label text (PDF / PPT / ↗ / NOTE) in white
+- Body: type badge pill, asset name `font-bold text-slate-900`, description `text-sm text-slate-500`, file metadata `text-xs text-slate-400`
+- Action button: full-width, `bg-red-500 text-white rounded-b-2xl py-2.5 text-sm font-bold`. Label: "⬇ Download" for files, "↗ Open Link" for links. Richtext/note assets show no action button.
+
+**Loading state:** Show 3 skeleton cards (`animate-pulse bg-slate-100 rounded-2xl h-52`) while data loads.
+
+**Error state (room not found or unpublished):** Next.js `notFound()` — existing behavior, unchanged.
 
 ### Seller Contact Strip
-At the bottom of every section. White card with seller avatar (red circle, initials), name, title, email. Two action buttons: "Schedule a call" (ghost) and "✉ Email [name]" (red).
+Rendered at the bottom of every section's content area, above the footer.
+- White `rounded-2xl border border-slate-200 shadow-sm p-5`
+- Left: seller avatar (red circle, initials, `w-11 h-11`), name `font-bold`, title hardcoded as "Account Executive · Twilio" (the `Seller` model has no `title` field; this is intentional placeholder copy for the demo), email in `text-red-500`
+- Right: "Schedule a call" ghost button + "✉ Email [first name]" red button
 
 ### Footer
-Centered, muted: "Powered by **Twilio Deal Room** · This room was prepared exclusively for [Customer Name]"
+`border-t border-slate-100 py-5 text-center text-xs text-slate-400`. Copy is locked: **"Powered by Twilio Deal Room · This room was prepared exclusively for [room.customerName]"**
 
 ---
 
 ## 5. Dashboard
 
-Keeps single-column layout. Adopts new design system:
+Keeps single-column layout. Adopts the new design system across all existing components:
 - Page background `slate-50`
-- Room cards: white `rounded-2xl shadow-sm border-slate-200`
-- Status badges updated to light pill style
+- Room cards: `bg-white rounded-2xl shadow-sm border border-slate-200`
+- Card hover: `hover:border-slate-300 hover:shadow-md` (replaces dark bg hover)
+- Status badges: updated to light pill style (see Section 1)
 - "Create Room" button: red primary
-- Dark card hover states (`gray-800`) replaced with `hover:border-slate-300 hover:shadow-md`
+- Shareable link row inside cards: replace green-dark treatment with `bg-slate-50 border border-slate-200 rounded-lg`
+
+Scope: `app/(seller)/dashboard/page.tsx` only. No layout or data changes.
 
 ---
 
-## 6. What Changes vs. What Stays
+## 6. Files Changed
 
-| Area | Change |
+| File | Change |
 |---|---|
-| `globals.css` | New CSS variables, remove dark theme |
-| `app/(seller)/layout.tsx` | New nav component |
-| `app/(seller)/rooms/[id]/page.tsx` | Split-screen layout, tabbed editor |
-| `app/(seller)/dashboard/page.tsx` | Design system update, light cards |
-| `app/(customer)/[slug]/page.tsx` | Full rewrite — tabs replace sidebar |
-| All Tailwind classes | Dark grays → slate palette, blue accent → red-500 |
+| `app/globals.css` | New CSS variables, remove dark theme defaults |
+| `app/layout.tsx` | Update font/body defaults |
+| `app/(seller)/layout.tsx` | New nav component (replaces existing) |
+| `app/(seller)/rooms/[id]/page.tsx` | Split-screen layout, RoomContext, tabbed editor |
+| `app/(seller)/rooms/[id]/components/SectionList.tsx` | Restyled, drag-to-reorder with optimistic update |
+| `app/(seller)/rooms/[id]/context.tsx` | **New file** — `RoomContext` provider |
+| `app/(seller)/rooms/[id]/components/SectionList.tsx` | Restyled + drag-to-reorder |
+| `app/(seller)/rooms/[id]/components/BrandingEditor.tsx` | Restyled + default accent color `#ef4444` |
+| `app/(seller)/rooms/[id]/components/PublishButton.tsx` | Restyled |
+| `app/(seller)/rooms/[id]/components/AssetPicker.tsx` | Restyled (dark-theme classes replaced) |
+| `app/(seller)/rooms/[id]/components/ShareToCommunity.tsx` | Restyled to fit new nav |
+| `app/(seller)/dashboard/page.tsx` | Design system update only |
+| `app/(customer)/[slug]/page.tsx` | Full rewrite — tab nav replaces sidebar |
+| `app/(customer)/[slug]/tracker.tsx` | Unchanged |
+| `app/api/rooms/[id]/sections/[sectionId]/assets/[assetId]/route.ts` | **New** `PATCH` handler for asset reorder |
 
-No changes to: API routes, database schema, auth, Prisma models, asset upload logic, Twilio docs search, community library data model.
+**Not changed:** All other API routes, Prisma schema, auth, asset upload logic, Twilio docs search, Community library, analytics data model.
 
 ---
 
 ## 7. Out of Scope
 
-- Mobile/responsive layout (desktop-first for now)
+- Mobile/responsive layout (desktop-first)
 - Dark mode
-- Animation / transitions beyond existing hover states
+- Animations beyond hover transitions
 - New asset types or data model changes
+- Community page restyling (deferred)
+- New room creation page restyling (deferred)
