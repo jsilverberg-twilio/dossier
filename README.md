@@ -1,6 +1,6 @@
-# Deal Room
+# Dossier
 
-A digital asset room builder for Twilio sales engineers. Build co-branded, customer-specific content hubs, share via a unique link, and track engagement — all without attaching files to an email.
+A personalized asset room builder for Twilio sales engineers. Build co-branded, customer-specific content hubs, share via a unique link, and track engagement — all without attaching files to an email.
 
 > **Status**: Reference implementation. Designed to roll into [GTM Accelerator](https://github.com/jsilverberg-twilio) as a feature module.
 

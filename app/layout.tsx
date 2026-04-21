@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Deal Room",
-  description: "Digital asset rooms for sales teams",
+  title: "Dossier",
+  description: "Personalized asset rooms for sales teams",
 };
 
 export default function RootLayout({

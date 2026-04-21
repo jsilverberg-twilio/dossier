@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Deal Room — Claude Code Guide
+# Dossier — Claude Code Guide
 
 ## What this is
 

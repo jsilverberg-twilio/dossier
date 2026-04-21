@@ -25,7 +25,7 @@ export default async function SellerLayout({
             <div className="w-7 h-7 rounded-lg bg-red-500 flex items-center justify-center text-white text-sm font-black">
               D
             </div>
-            <span className="text-sm font-bold text-slate-900">Deal Room</span>
+            <span className="text-sm font-bold text-slate-900">Dossier</span>
           </div>
           <nav className="pl-5">
             <Link

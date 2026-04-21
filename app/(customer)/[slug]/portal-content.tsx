@@ -243,7 +243,7 @@ export function PortalContent({
 
       {/* Footer */}
       <div className="border-t border-slate-100 py-5 text-center text-xs text-slate-400 mt-10">
-        Powered by Twilio Deal Room · This room was prepared exclusively for {customerName}
+        Powered by Dossier · This room was prepared exclusively for {customerName}
       </div>
     </div>
   );

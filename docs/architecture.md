@@ -2,7 +2,7 @@
 
 ## Overview
 
-Deal Room is a Next.js 16 App Router application. It splits into two concerns behind a single Next.js process:
+Dossier is a Next.js 16 App Router application. It splits into two concerns behind a single Next.js process:
 
 - **Seller app** — authenticated workspace for building and managing rooms (`app/(seller)/`)
 - **Customer portal** — public, slug-based room viewer (`app/(customer)/[slug]/`)
