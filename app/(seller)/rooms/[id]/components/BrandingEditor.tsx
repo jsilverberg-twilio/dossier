@@ -12,9 +12,10 @@ interface BrandingData {
 interface Props {
   roomId: string;
   initialBranding: BrandingData;
+  onSaved?: (updated: BrandingData) => void;
 }
 
-export function BrandingEditor({ roomId, initialBranding }: Props) {
+export function BrandingEditor({ roomId, initialBranding, onSaved }: Props) {
   const [branding, setBranding] = useState<BrandingData>(initialBranding);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -48,6 +49,7 @@ export function BrandingEditor({ roomId, initialBranding }: Props) {
       }
       const updated: BrandingData = await res.json();
       setBranding(updated);
+      onSaved?.(updated);
       if (sellerFileRef.current) sellerFileRef.current.value = "";
       if (customerFileRef.current) customerFileRef.current.value = "";
       setSaved(true);

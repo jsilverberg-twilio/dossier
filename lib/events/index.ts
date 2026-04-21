@@ -15,7 +15,7 @@ export async function captureEvent(params: {
 }
 
 export async function getRoomAnalytics(roomId: string) {
-  const [totalViews, uniqueVisitors, downloads, lastEvent, recentEvents] =
+  const [totalViews, uniqueVisitors, downloads, linkClicks, lastEvent, recentEvents, assetViewedEvents] =
     await Promise.all([
       prisma.viewEvent.count({ where: { roomId } }),
       prisma.viewEvent.groupBy({
@@ -24,6 +24,9 @@ export async function getRoomAnalytics(roomId: string) {
       }),
       prisma.viewEvent.count({
         where: { roomId, action: "asset_downloaded" },
+      }),
+      prisma.viewEvent.count({
+        where: { roomId, action: "link_clicked" },
       }),
       prisma.viewEvent.findFirst({
         where: { roomId },
@@ -35,13 +38,28 @@ export async function getRoomAnalytics(roomId: string) {
         take: 20,
         include: { asset: { select: { title: true } } },
       }),
+      prisma.viewEvent.findMany({
+        where: { roomId, action: "asset_viewed" },
+        include: { asset: { include: { section: { select: { title: true } } } } },
+      }),
     ]);
+
+  // Group asset_viewed events by section title
+  const sectionViews: Record<string, number> = {};
+  for (const ev of assetViewedEvents) {
+    const sectionTitle = ev.asset?.section?.title;
+    if (sectionTitle) {
+      sectionViews[sectionTitle] = (sectionViews[sectionTitle] ?? 0) + 1;
+    }
+  }
 
   return {
     totalViews,
     uniqueVisitors: uniqueVisitors.length,
     downloads,
+    linkClicks,
     lastActivity: lastEvent?.timestamp ?? null,
     recentEvents,
+    sectionViews,
   };
 }

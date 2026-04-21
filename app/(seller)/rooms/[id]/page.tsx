@@ -72,6 +72,7 @@ export default async function RoomBuilderPage({ params }: PageProps) {
         totalViews: analytics.totalViews,
         uniqueVisitors: analytics.uniqueVisitors,
         downloads: analytics.downloads,
+        linkClicks: analytics.linkClicks,
         lastActivity: analytics.lastActivity?.toISOString() ?? null,
         recentEvents: analytics.recentEvents.map((e) => ({
           id: e.id,
@@ -79,6 +80,7 @@ export default async function RoomBuilderPage({ params }: PageProps) {
           timestamp: e.timestamp.toISOString(),
           asset: e.asset ?? null,
         })),
+        sectionViews: analytics.sectionViews,
       }}
       shareUrl={shareUrl}
     />

@@ -28,8 +28,10 @@ interface Analytics {
   totalViews: number;
   uniqueVisitors: number;
   downloads: number;
+  linkClicks: number;
   lastActivity: string | null;
   recentEvents: AnalyticsEvent[];
+  sectionViews: Record<string, number>;
 }
 
 interface Seller {
@@ -246,7 +248,7 @@ function AnalyticsTab({ analytics, roomId }: { analytics: Analytics; roomId: str
     { label: "Total Views", value: analytics.totalViews, highlight: true },
     { label: "Visitors", value: analytics.uniqueVisitors, highlight: false },
     { label: "Downloads", value: analytics.downloads, highlight: false },
-    { label: "Link Clicks", value: analytics.recentEvents.filter(e => e.action === "link_clicked").length, highlight: false },
+    { label: "Link Clicks", value: analytics.linkClicks, highlight: false },
   ];
 
   return (
@@ -264,6 +266,34 @@ function AnalyticsTab({ analytics, roomId }: { analytics: Analytics; roomId: str
         ))}
       </div>
 
+      {/* Views by section */}
+      {Object.keys(analytics.sectionViews).length > 0 && (
+        <div>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Views by Section</p>
+          <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2">
+            {(() => {
+              const maxViews = Math.max(...Object.values(analytics.sectionViews));
+              return Object.entries(analytics.sectionViews)
+                .sort(([, a], [, b]) => b - a)
+                .map(([title, count]) => (
+                  <div key={title}>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[11px] font-medium text-slate-600 truncate flex-1 mr-2">{title}</p>
+                      <p className="text-[11px] font-bold text-slate-900 shrink-0">{count}</p>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-red-500 transition-all"
+                        style={{ width: `${Math.round((count / maxViews) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                ));
+            })()}
+          </div>
+        </div>
+      )}
+
       {/* Recent activity */}
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -273,7 +303,7 @@ function AnalyticsTab({ analytics, roomId }: { analytics: Analytics; roomId: str
           </Link>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 overflow-hidden">
-          {analytics.recentEvents.slice(0, 8).map((ev) => (
+          {analytics.recentEvents.slice(0, 10).map((ev) => (
             <div key={ev.id} className="flex items-center gap-2 px-3 py-2.5">
               <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
                 <span className="text-[9px] font-bold text-slate-500">
@@ -347,14 +377,16 @@ function EditorPanel({
   roomName,
   roomStatus,
   shareUrl,
-  initialBranding,
+  branding,
+  onBrandingChange,
   analytics,
 }: {
   roomId: string;
   roomName: string;
   roomStatus: string;
   shareUrl: string;
-  initialBranding: Branding;
+  branding: Branding;
+  onBrandingChange: (updated: Branding) => void;
   analytics: Analytics;
 }) {
   const [tab, setTab] = useState<EditorTab>("content");
@@ -401,12 +433,12 @@ function EditorPanel({
       <div className="flex-1 overflow-y-auto">
         {tab === "content" && (
           <div className="p-3">
-            <BrandingSummaryCard branding={initialBranding} onBrandingClick={() => setTab("branding")} />
+            <BrandingSummaryCard branding={branding} onBrandingClick={() => setTab("branding")} />
             <SectionList />
           </div>
         )}
         {tab === "branding" && (
-          <BrandingEditor roomId={roomId} initialBranding={initialBranding} />
+          <BrandingEditor roomId={roomId} initialBranding={branding} onSaved={onBrandingChange} />
         )}
         {tab === "analytics" && (
           <AnalyticsTab analytics={analytics} roomId={roomId} />
@@ -429,6 +461,8 @@ export function RoomBuilderClient({
   analytics,
   shareUrl,
 }: RoomBuilderClientProps) {
+  const [branding, setBranding] = useState<Branding>(initialBranding);
+
   return (
     <RoomProvider roomId={roomId} initialSections={initialSections}>
       <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden">
@@ -437,7 +471,7 @@ export function RoomBuilderClient({
           <BuyerPreview
             roomName={roomName}
             customerName={customerName}
-            branding={initialBranding}
+            branding={branding}
             seller={seller}
             slug={roomSlug}
           />
@@ -450,7 +484,8 @@ export function RoomBuilderClient({
             roomName={roomName}
             roomStatus={roomStatus}
             shareUrl={shareUrl}
-            initialBranding={initialBranding}
+            branding={branding}
+            onBrandingChange={setBranding}
             analytics={analytics}
           />
         </div>
