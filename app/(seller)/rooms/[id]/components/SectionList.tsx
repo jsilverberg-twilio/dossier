@@ -22,11 +22,15 @@ export function SectionList() {
     const prev = sections.find((s) => s.id === sectionId)?.title;
     if (trimmed === prev) return;
     setSections((s) => s.map((sec) => sec.id === sectionId ? { ...sec, title: trimmed } : sec));
-    await fetch(`/api/rooms/${roomId}/sections/${sectionId}`, {
+    const res = await fetch(`/api/rooms/${roomId}/sections/${sectionId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: trimmed }),
     });
+    if (!res.ok && prev !== undefined) {
+      // Rollback optimistic update on failure.
+      setSections((s) => s.map((sec) => sec.id === sectionId ? { ...sec, title: prev } : sec));
+    }
   }
 
   async function addSection(e: React.FormEvent) {

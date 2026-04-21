@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { RoomProvider, useRoom, type Section } from "./context";
-import { getThumbGrad, getThumbLabel } from "@/lib/assets";
+import { getThumbGrad, getThumbLabel, relTime, eventLabel } from "@/lib/assets";
 import { SectionList } from "./components/SectionList";
 import { BrandingEditor } from "./components/BrandingEditor";
 import { PublishButton } from "./components/PublishButton";
@@ -32,7 +32,7 @@ interface Analytics {
   linkClicks: number;
   lastActivity: string | null;
   recentEvents: AnalyticsEvent[];
-  sectionViews: Record<string, number>;
+  sectionViews: Array<{ title: string; count: number }>;
 }
 
 interface Seller {
@@ -69,9 +69,12 @@ function BuyerPreview({
 }) {
   const { sections } = useRoom();
   const [activeIdx, setActiveIdx] = useState(0);
+  // Clamp at render time so the preview never goes blank after a section is deleted.
+  const safeIdx = sections.length > 0 ? Math.min(activeIdx, sections.length - 1) : 0;
+
   const brandColor = branding.primaryColor ?? "#ef4444";
   const companyLabel = branding.companyName || "Twilio";
-  const activeSection: Section | null = sections[activeIdx] ?? null;
+  const activeSection: Section | null = sections[safeIdx] ?? null;
   const sellerInitials = seller.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 
   return (
@@ -128,7 +131,7 @@ function BuyerPreview({
                   key={s.id}
                   onClick={() => setActiveIdx(idx)}
                   className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                    idx === activeIdx ? "text-red-500 border-red-500" : "text-slate-400 border-transparent"
+                    idx === safeIdx ? "text-red-500 border-red-500" : "text-slate-400 border-transparent"
                   }`}
                 >
                   {s.title}
@@ -193,29 +196,22 @@ function BuyerPreview({
   );
 }
 
-function relTime(ts: string) {
-  const diff = Date.now() - new Date(ts).getTime();
-  const m = Math.floor(diff / 60000);
-  const h = Math.floor(m / 60);
-  const d = Math.floor(h / 24);
-  if (d > 0) return `${d}d ago`;
-  if (h > 0) return `${h}h ago`;
-  if (m > 0) return `${m}m ago`;
-  return "just now";
-}
-
-function eventLabel(action: string, assetTitle?: string | null) {
-  switch (action) {
-    case "room_viewed": return "Viewed room";
-    case "asset_viewed": return `Viewed ${assetTitle ?? "asset"}`;
-    case "asset_downloaded": return `Downloaded ${assetTitle ?? "asset"}`;
-    case "link_clicked": return `Clicked ${assetTitle ?? "link"}`;
-    default: return action;
-  }
-}
-
 // ── Analytics Tab ──────────────────────────────────────────────────────
-function AnalyticsTab({ analytics, roomId }: { analytics: Analytics; roomId: string }) {
+function AnalyticsTab({ analytics: initialAnalytics, roomId }: { analytics: Analytics; roomId: string }) {
+  const [analytics, setAnalytics] = useState<Analytics>(initialAnalytics);
+
+  useEffect(() => {
+    async function fetchAnalytics() {
+      try {
+        const res = await fetch(`/api/rooms/${roomId}/analytics`);
+        if (res.ok) setAnalytics(await res.json());
+      } catch {}
+    }
+    fetchAnalytics();
+    const interval = setInterval(fetchAnalytics, 5000);
+    return () => clearInterval(interval);
+  }, [roomId]);
+
   const hasData = analytics.totalViews > 0;
 
   if (!hasData) {
@@ -249,28 +245,26 @@ function AnalyticsTab({ analytics, roomId }: { analytics: Analytics; roomId: str
       </div>
 
       {/* Views by section */}
-      {Object.keys(analytics.sectionViews).length > 0 && (
+      {analytics.sectionViews.length > 0 && (
         <div>
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Views by Section</p>
           <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2">
             {(() => {
-              const maxViews = Math.max(...Object.values(analytics.sectionViews));
-              return Object.entries(analytics.sectionViews)
-                .sort(([, a], [, b]) => b - a)
-                .map(([title, count]) => (
-                  <div key={title}>
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-[11px] font-medium text-slate-600 truncate flex-1 mr-2">{title}</p>
-                      <p className="text-[11px] font-bold text-slate-900 shrink-0">{count}</p>
-                    </div>
-                    <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-red-500 transition-all"
-                        style={{ width: `${Math.round((count / maxViews) * 100)}%` }}
-                      />
-                    </div>
+              const maxViews = analytics.sectionViews[0]?.count ?? 1;
+              return analytics.sectionViews.map(({ title, count }) => (
+                <div key={title}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[11px] font-medium text-slate-600 truncate flex-1 mr-2">{title}</p>
+                    <p className="text-[11px] font-bold text-slate-900 shrink-0">{count}</p>
                   </div>
-                ));
+                  <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-red-500 transition-all"
+                      style={{ width: `${Math.round((count / maxViews) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ));
             })()}
           </div>
         </div>

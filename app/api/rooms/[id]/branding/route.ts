@@ -52,7 +52,9 @@ export async function POST(
   }
 
   const primaryColor = formData.get("primaryColor");
-  if (typeof primaryColor === "string") merged.primaryColor = primaryColor;
+  if (typeof primaryColor === "string" && /^#[0-9a-fA-F]{3,8}$/.test(primaryColor)) {
+    merged.primaryColor = primaryColor;
+  }
 
   const companyName = formData.get("companyName");
   if (typeof companyName === "string") merged.companyName = companyName;

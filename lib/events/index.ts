@@ -40,18 +40,22 @@ export async function getRoomAnalytics(roomId: string) {
       }),
       prisma.viewEvent.findMany({
         where: { roomId, action: "asset_viewed" },
-        include: { asset: { include: { section: { select: { title: true } } } } },
+        include: { asset: { include: { section: { select: { id: true, title: true } } } } },
       }),
     ]);
 
-  // Group asset_viewed events by section title
-  const sectionViews: Record<string, number> = {};
+  // Group by sectionId first to prevent same-titled sections from merging.
+  const sectionViewsById: Record<string, { title: string; count: number }> = {};
   for (const ev of assetViewedEvents) {
-    const sectionTitle = ev.asset?.section?.title;
-    if (sectionTitle) {
-      sectionViews[sectionTitle] = (sectionViews[sectionTitle] ?? 0) + 1;
+    const section = ev.asset?.section;
+    if (section) {
+      if (!sectionViewsById[section.id]) {
+        sectionViewsById[section.id] = { title: section.title, count: 0 };
+      }
+      sectionViewsById[section.id].count++;
     }
   }
+  const sectionViews = Object.values(sectionViewsById).sort((a, b) => b.count - a.count);
 
   return {
     totalViews,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { relTime, eventLabel } from "@/lib/assets";
 
 interface RawEvent {
   id: string;
@@ -17,17 +18,6 @@ const ACTION_STYLE: Record<string, { icon: string; cls: string }> = {
   asset_downloaded: { icon: "⬇",  cls: "bg-green-50 text-green-600" },
   link_clicked:     { icon: "↗",  cls: "bg-purple-50 text-purple-500" },
 };
-
-function relativeTime(ts: string) {
-  const diff = Date.now() - new Date(ts).getTime();
-  const s = Math.floor(diff / 1000);
-  const m = Math.floor(s / 60);
-  const h = Math.floor(m / 60);
-  if (h > 0) return `${h}h ago`;
-  if (m > 0) return `${m}m ago`;
-  if (s > 5) return `${s}s ago`;
-  return "just now";
-}
 
 export function LiveEventsFeed({ roomId }: { roomId: string }) {
   const [events, setEvents] = useState<RawEvent[]>([]);
@@ -74,7 +64,7 @@ export function LiveEventsFeed({ roomId }: { roomId: string }) {
           ) : (
             <span className="flex items-center gap-1 text-[10px] text-green-600 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
-              live · {lastFetch ? `updated ${relativeTime(lastFetch.toISOString())}` : "connecting…"}
+              live · {lastFetch ? `updated ${relTime(lastFetch.toISOString())}` : "connecting…"}
             </span>
           )}
         </div>
@@ -103,15 +93,14 @@ export function LiveEventsFeed({ roomId }: { roomId: string }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-800 truncate">
-                      {ev.action}
-                      {ev.asset && <span className="font-normal text-slate-500"> · {ev.asset.title}</span>}
+                      {eventLabel(ev.action, ev.asset?.title)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {isNew && (
                       <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 uppercase tracking-wide">new</span>
                     )}
-                    <p className="text-xs text-slate-400">{relativeTime(ev.timestamp)}</p>
+                    <p className="text-xs text-slate-400">{relTime(ev.timestamp)}</p>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
                       className={`h-3.5 w-3.5 text-slate-300 transition-transform ${isOpen ? "rotate-90" : ""}`}>
                       <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />

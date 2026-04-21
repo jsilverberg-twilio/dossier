@@ -18,11 +18,15 @@ export function PublishButton({ roomId, status, shareUrl, onStatusChange }: Publ
   async function togglePublish() {
     setLoading(true);
     const newStatus = isPublished ? "draft" : "published";
-    await fetch(`/api/rooms/${roomId}`, {
+    const res = await fetch(`/api/rooms/${roomId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),
     });
+    if (!res.ok) {
+      setLoading(false);
+      return;
+    }
     onStatusChange(newStatus);
     // Auto-copy the share link to clipboard when going live.
     if (newStatus === "published") {
@@ -30,7 +34,9 @@ export function PublishButton({ roomId, status, shareUrl, onStatusChange }: Publ
         await navigator.clipboard.writeText(shareUrl);
         setCopied(true);
         setTimeout(() => setCopied(false), 3000);
-      } catch {}
+      } catch {
+        console.warn("Clipboard write failed — copy the link manually:", shareUrl);
+      }
     }
     setLoading(false);
   }

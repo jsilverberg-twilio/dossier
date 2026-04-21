@@ -89,25 +89,23 @@ export default async function AnalyticsPage({ params }: PageProps) {
       </p>
 
       {/* Views by section */}
-      {Object.keys(analytics.sectionViews).length > 0 && (
+      {analytics.sectionViews.length > 0 && (
         <div className="mb-8">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Views by Section</p>
           <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4 space-y-3">
             {(() => {
-              const max = Math.max(...Object.values(analytics.sectionViews));
-              return Object.entries(analytics.sectionViews)
-                .sort(([, a], [, b]) => b - a)
-                .map(([title, count]) => (
-                  <div key={title}>
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-medium text-slate-700 truncate flex-1 mr-3">{title}</p>
-                      <p className="text-sm font-bold text-slate-900 shrink-0">{count}</p>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-                      <div className="h-full rounded-full bg-red-500 transition-all" style={{ width: `${Math.round((count / max) * 100)}%` }} />
-                    </div>
+              const max = analytics.sectionViews[0]?.count ?? 1;
+              return analytics.sectionViews.map(({ title, count }) => (
+                <div key={title}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm font-medium text-slate-700 truncate flex-1 mr-3">{title}</p>
+                    <p className="text-sm font-bold text-slate-900 shrink-0">{count}</p>
                   </div>
-                ));
+                  <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-full rounded-full bg-red-500 transition-all" style={{ width: `${Math.round((count / max) * 100)}%` }} />
+                  </div>
+                </div>
+              ));
             })()}
           </div>
         </div>
