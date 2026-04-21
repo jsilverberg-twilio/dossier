@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
+import { LocalStorage } from "@/lib/storage";
+
+const storage = new LocalStorage();
 
 export async function PATCH(
   req: Request,
@@ -29,6 +32,11 @@ export async function DELETE(
   const { id, sectionId, assetId } = await params;
   const room = await prisma.room.findFirst({ where: { id, sellerId: user.id } });
   if (!room) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // Fetch fileKey before deleting so we can clean up the uploaded file.
+  const asset = await prisma.asset.findFirst({ where: { id: assetId, sectionId } });
   await prisma.asset.deleteMany({ where: { id: assetId, sectionId } });
+  if (asset?.fileKey) {
+    try { await storage.delete(asset.fileKey); } catch {}
+  }
   return NextResponse.json({ ok: true });
 }

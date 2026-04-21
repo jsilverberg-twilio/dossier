@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RoomTracker, AssetTrackerButton } from "./tracker";
+import { RoomTracker, AssetTrackerButton, AssetViewTracker } from "./tracker";
 import { getThumbGrad, getThumbLabel, getMetaText } from "@/lib/assets";
 
 interface Asset {
@@ -163,8 +163,8 @@ export function PortalContent({
               const trackAction: "asset_downloaded" | "link_clicked" = isLink ? "link_clicked" : "asset_downloaded";
 
               return (
+                <AssetViewTracker key={asset.id} roomId={roomId} assetId={asset.id}>
                 <div
-                  key={asset.id}
                   className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden flex flex-col transition-all hover:-translate-y-px hover:border-red-300 hover:shadow-md hover:shadow-red-100"
                 >
                   {/* Gradient strip */}
@@ -202,6 +202,7 @@ export function PortalContent({
                     </AssetTrackerButton>
                   )}
                 </div>
+                </AssetViewTracker>
               );
             })}
           </div>

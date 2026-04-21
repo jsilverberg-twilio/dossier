@@ -24,6 +24,14 @@ export function PublishButton({ roomId, status, shareUrl, onStatusChange }: Publ
       body: JSON.stringify({ status: newStatus }),
     });
     onStatusChange(newStatus);
+    // Auto-copy the share link to clipboard when going live.
+    if (newStatus === "published") {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 3000);
+      } catch {}
+    }
     setLoading(false);
   }
 
@@ -44,7 +52,7 @@ export function PublishButton({ roomId, status, shareUrl, onStatusChange }: Publ
           onClick={copyLink}
           className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 shadow-sm transition hover:border-slate-300 hover:text-slate-700"
         >
-          {copied ? "Copied!" : "Copy Link"}
+          {copied ? "✓ Link copied!" : "Copy Link"}
         </button>
         <button
           onClick={togglePublish}

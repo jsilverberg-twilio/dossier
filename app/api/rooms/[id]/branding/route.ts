@@ -31,15 +31,23 @@ export async function POST(
 
   const sellerFile = formData.get("sellerLogo");
   if (sellerFile instanceof File && sellerFile.size > 0) {
+    if (existing.sellerLogoKey) {
+      try { await storage.delete(existing.sellerLogoKey); } catch {}
+    }
     const buffer = Buffer.from(await sellerFile.arrayBuffer());
     const key = await storage.upload(buffer, sellerFile.name);
+    merged.sellerLogoKey = key;
     merged.sellerLogoUrl = storage.getUrl(key);
   }
 
   const customerFile = formData.get("customerLogo");
   if (customerFile instanceof File && customerFile.size > 0) {
+    if (existing.customerLogoKey) {
+      try { await storage.delete(existing.customerLogoKey); } catch {}
+    }
     const buffer = Buffer.from(await customerFile.arrayBuffer());
     const key = await storage.upload(buffer, customerFile.name);
+    merged.customerLogoKey = key;
     merged.customerLogoUrl = storage.getUrl(key);
   }
 
