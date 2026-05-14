@@ -27,7 +27,7 @@ export default async function CustomerPortalPage({ params }: PageProps) {
   });
 
   if (!room || room.status !== "published") {
-    notFound();
+    return notFound();
   }
 
   let branding: {
