@@ -1,17 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-
-const AVAILABLE_TAGS = [
-  "Contact Center",
-  "CPaaS",
-  "Messaging",
-  "Video",
-  "Voice",
-  "Email",
-  "Verification",
-  "IoT",
-];
+import { AVAILABLE_TAGS } from "@/lib/community";
 
 interface ShareToCommunityProps {
   roomId: string;

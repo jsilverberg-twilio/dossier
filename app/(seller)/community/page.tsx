@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-
-const AVAILABLE_TAGS = [
-  "Contact Center", "CPaaS", "Messaging", "Video",
-  "Voice", "Email", "Verification", "IoT",
-];
+import { AVAILABLE_TAGS } from "@/lib/community";
 
 interface CommunityRoom {
   id: string;
