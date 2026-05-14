@@ -1,8 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { createId } from "@paralleldrive/cuid2";
-import bcrypt from "bcryptjs";
-
 const adapter = new PrismaBetterSqlite3({ url: "file:./dev.db" });
 const prisma = new PrismaClient({ adapter });
 
@@ -21,8 +19,9 @@ async function main() {
   const seller1Id = createId();
   const seller2Id = createId();
 
-  const passwordHash1 = await bcrypt.hash("password123", 10);
-  const passwordHash2 = await bcrypt.hash("password456", 10);
+  // Auth is bypassed — passwordHash is a required schema field but never used.
+  const passwordHash1 = "demo-placeholder";
+  const passwordHash2 = "demo-placeholder";
 
   const seller1 = await prisma.seller.create({
     data: {

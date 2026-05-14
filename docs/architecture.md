@@ -21,7 +21,6 @@ app/
         components/         Editor panel sub-components
         analytics/          Full analytics page
     community/              Community template library
-    login/ register/        Auth pages (unused in demo — SSO handles this)
     layout.tsx              Shared nav: brand mark, breadcrumb, avatar
 
   (customer)/
@@ -41,17 +40,14 @@ app/
     events/                 Ingest ViewEvent records (no auth — public)
     community/              Community library read + clone
     docs/search/            Local Twilio docs search (catalog JSON, no API key)
-    auth/                   NextAuth routes (unused in demo flow)
 
 lib/
   assets.ts                 Shared thumbnail/label/meta helpers (used in 3 places)
-  auth.ts                   NextAuth config (credentials provider, bcrypt)
   current-user.ts           Demo shim — returns first seller in DB
   db.ts                     Prisma client singleton
   events/index.ts           getRoomAnalytics + captureEvent
   slug.ts                   Auto-generate URL-safe slugs
   storage/                  StorageAdapter interface + LocalStorage implementation
-  adapters/                 Asset source adapters (manual, twilio-docs)
   twilio-docs-catalog.json  4,273-entry Twilio docs index (scraped sitemap)
 
 prisma/

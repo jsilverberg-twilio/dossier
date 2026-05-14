@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getCurrentUser } from "@/lib/current-user";
 import Link from "next/link";
 
